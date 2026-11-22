@@ -7,10 +7,10 @@ flowchart TB
     %% ================= LAYER 1: SOURCES =================
     subgraph L1["Layer 1 — Ingestion (daily 06:00 UTC)"]
         direction LR
-        SRC1["Adzuna API<br/>primary"]
-        SRC2["Reed API"]
-        SRC3["JobSpy<br/>Indeed scraper"]
-        SRC4["ATS boards:<br/>Greenhouse · Lever<br/>Ashby · Workable<br/>Arbeitnow"]
+        SRC1["Job-board API A<br/>(commercial feed, primary volume)"]
+        SRC2["Job-board API B<br/>(commercial feed)"]
+        SRC3["Open web scraper<br/>(major boards, unnamed)"]
+        SRC4["Public ATS feeds<br/>(multiple boards)"]
     end
 
     %% ================= LAYER 2: PROCESSING =================
@@ -45,7 +45,7 @@ flowchart TB
         SV1["Landing dashboard<br/>sector catalog table<br/>393/day · 12,780 pool"]
         SV2["CV search<br/>semantic + keyword<br/>match breakdown"]
         SV3["Trust badges<br/>risk flags on job cards<br///api/v1/trust-score"]
-        SV4["Cover letter / profile<br/>Claude · Gemini"]
+        SV4["Cover letter / profile<br/>frontier LLM APIs"]
     end
 
     %% ================= LAYER 6: OPS =================

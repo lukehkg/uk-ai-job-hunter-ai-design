@@ -7,14 +7,14 @@ flowchart TD
     %% ===================== FLOW 1: DAILY COLLECTION (HOT PATH) =====================
     subgraph F1["FLOW 1 — Daily collection · 06:00 UTC · sync-jobs-oct26.yml"]
         direction TB
-        S1["Adzuna API<br/>Reed API"] -->|"auth keys"| CO
-        S2["JobSpy scraper<br/>Indeed etc."] -->|"scrape"| CO
-        S3["Greenhouse · Lever<br/>Ashby · Workable · Arbeitnow"] -->|"ATS boards"| CO
+        S1["Job-board APIs<br/>(commercial feeds)"] -->|"auth keys"| CO
+        S2["Open web scraper<br/>(major boards, unnamed)"] -->|"scrape"| CO
+        S3["Public ATS feeds<br/>(multiple boards)"] -->|"ATS boards"| CO
         CO["controller.collect()<br/>~2,000-3,000 raw/day"] -->|"exact + vector dedup<br/>cosine ≥ 0.88"| DD["dedup.deduplicate()<br/>12,780 unique"]
         DD -->|"is_uk_location UK filter"| UK["10,728 UK jobs"]
         UK -->|"ghost / spam score"| GATE["quality gate"]
         GATE -->|"deduped_jobs.json (19.5 MB)"| EXPORT["exports/"]
-        GATE -->|"*_latest.jsonl<br/>adzuna 9,776 · jobspy 225"| EXPORT
+        GATE -->|"*_latest.jsonl<br/>board-A 9,776 · scraper 225"| EXPORT
         EXPORT -->|"jobs_history.jsonl<br/>git commit 4ffe8b6"| GIT["GitHub main"]
         EXPORT -->|"upload_file"| HFD1[("HF pro-data<br/>11 canonical files")]
     end
@@ -47,7 +47,7 @@ flowchart TD
         JT["Job text"] -->|"embed"| EMB["all-mpnet"]
         JT -->|"title prefix ladder<br/>4→3→2→1 words"| FTS2["FTS5 corpus retrieve<br/>12,780 jobs"]
         FTS2 -->|"top-10 context<br/>+ vector dupes ≥ 0.85"| CTX["RAG context block"]
-        CTX -->|"chat_completion<br/>GLM-5.3-flash Tier 2 (flag-gated)<br/>fallback: keyword scorer"| LLM["Teacher LLM<br/>OpenRouter"]
+        CTX -->|"chat_completion<br/>Tier-2 LLM teacher (flag-gated)<br/>fallback: keyword scorer"| LLM["Teacher LLM<br/>via an OpenAI-compatible gateway API"]
         LLM -->|"strict JSON<br/>5 flags + score 0-100"| OUT["trust-score response<br/>VERIFIED_HIGH_QUALITY …"]
         OUT -->|"append (Step B)"| TL["trust_labels.jsonl<br/>~1,000 rows → student distillation"]
     end

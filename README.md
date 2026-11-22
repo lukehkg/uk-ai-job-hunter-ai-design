@@ -19,11 +19,14 @@ putting a large-model call on every search.
 ## The design in one paragraph
 
 A GitHub-Actions pipeline collects ~2,000–3,000 UK job postings daily from
-5+ sources, deduplicates them (exact keys + 768-dim embedding cosine ≥ 0.88),
-filters to the UK, and screens for ghost/spam listings. Every finalized job
+multiple sources (commercial job-board APIs, public ATS feeds, and open web
+scraping of major employment platforms — deliberately unnamed here),
+deduplicates them (exact keys + 768-dim embedding cosine ≥ 0.88), filters
+to the UK, and screens for ghost/spam listings. Every finalized job
 is auto-labelled into schema-2.0 training shards by a **tiered teacher
 cascade** — a locally-served DistilBERT tagger first (free), with a larger
-teacher model (GLM-5.3-flash via OpenRouter) verifying only the low-confidence
+frontier-class teacher model (served through an OpenAI-compatible gateway
+API, vendor unnamed) verifying only the low-confidence
 slice (~$2 for the whole backlog). Nightly compaction dedupes, quality-gates,
 and publishes leakage-safe grouped splits as Parquet. From that corpus a
 276-label job-tag classifier (**F1 0.888 vs 0.575 frequency baseline**) and a

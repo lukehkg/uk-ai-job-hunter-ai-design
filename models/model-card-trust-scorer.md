@@ -38,9 +38,10 @@ Design rules baked into the system prompt:
 
 ## Teacher cascade (2026-11-22)
 
-- **Tier 2 first:** GLM-5.3-flash via OpenRouter when the teacher flag is on
+- **Tier 2 first:** a frontier-class LLM served through an OpenAI-compatible
+  gateway API (vendor deliberately unnamed) when the teacher flag is on
   (one call per scoring request, structured JSON output, quota-guarded at 80%
-  credit use).
+  gateway-credit use).
 - **Fallbacks:** legacy open-source pool → deterministic keyword scorer —
   every failure degrades to a safe default instead of erroring.
 

@@ -12,10 +12,12 @@ first:
 Tier 1   Local DistilBERT batch inference        $0   labels ~100% of jobs
               │ only the LOW-CONFIDENCE slice (~10–20%) continues
               ▼
-Tier 2   GLM-5.3-flash via OpenRouter            ~$2 per full low-conf pass
+Tier 2   Frontier-class LLM teacher            ~$2 per full low-conf pass
+         (served via an OpenAI-compatible
+          gateway API; vendor unnamed)
          one structured-output call per job:
            { tags[≤5], is_scam, is_agency, confidence }
-              │ quota guard: abort if >80% of OpenRouter credits used
+              │ quota guard: abort if >80% of gateway credits used
               ▼
 Tier 3   The STUDENT (DistilBERT 67M)
          retrained on Tier-2-verified labels; promotes itself only if it
@@ -33,7 +35,7 @@ Design rules that make this work:
    network, malformed JSON), the pipeline continues with the cheap labels —
    the hot path is byte-identical whether the flag is on or off.
 4. **The teacher's share shrinks every cycle.** Each retrained student
-   absorbs more of the labelling; GLM spend trends toward zero.
+   absorbs more of the labelling; large-model spend trends toward zero.
 
 ## Quality gates before anything becomes training data
 

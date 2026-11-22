@@ -15,7 +15,7 @@ graph TB
             L1["Landing page<br/>JobTypeCatalogStrip<br/>(sector table, 3d/7d deltas)"]
             L2["My CV Match<br/>resume upload + filters<br/>CvSearchSSE (live progress)"]
             L3["Results view<br/>JobResultTable<br/>match_score + breakdown"]
-            L4["Source tabs<br/>Adzuna / JobSpy views"]
+            L4["Source tabs<br/>per-source views"]
         end
 
         subgraph BE["Backend — FastAPI (api/v1)"]
@@ -31,7 +31,7 @@ graph TB
             S1["dedup<br/>exact + vector 0.88<br/>is_uk_location<br/>ghost / spam score"]
             S2["index_store<br/>SQLite FTS5 + embeddings<br/>date-partitioned shards"]
             S3["semantic_match<br/>all-mpnet cosine"]
-            S4["matching<br/>HF pool / Claude / local"]
+            S4["matching<br/>LLM pool / local fallback"]
             S5["training_data<br/>schema v2.0 + PII scrub"]
             S6["job_catalog<br/>12-sector bucketing"]
             S7["trust_score<br/>RAG teacher pipeline"]
@@ -46,11 +46,11 @@ graph TB
     end
 
     subgraph EXT["External sources / APIs"]
-        E1["Adzuna API"]
-        E2["Reed API"]
-        E3["JobSpy scraper<br/>(Indeed etc.)"]
-        E4["Greenhouse / Lever<br/>Ashby / Workable / Arbeitnow"]
-        E5["Claude / Gemini<br/>(profile, cover letter)"]
+        E1["Job-board API A<br/>(commercial feed)"]
+        E2["Job-board API B<br/>(commercial feed)"]
+        E3["Open web scraper<br/>(major boards, unnamed)"]
+        E4["Public ATS feeds<br/>(multiple boards)"]
+        E5["Frontier LLM APIs<br/>(profile, cover letter)"]
     end
 
     subgraph GHA["GitHub Actions"]

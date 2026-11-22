@@ -18,8 +18,8 @@
    off — the hot path is byte-identical until flipped).
 2. **100-job pilot** (~$0.01): measure Tier-1 vs Tier-2 agreement rate and
    cost per job — the number that decides everything downstream.
-3. **First low-confidence re-label** (~$2): GLM verifies the ~10–20% slice
-   the cheap model was unsure about.
+3. **First low-confidence re-label** (~$2): the Tier-2 LLM teacher verifies
+   the ~10–20% slice the cheap model was unsure about.
 4. **Student retrain on verified labels** → the nightly monitor evaluates
    `student_promotable` → the student takes over the serving slot.
 5. **Phase B serving**: scale-to-zero inference endpoint for the student

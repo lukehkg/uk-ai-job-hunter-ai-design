@@ -14,8 +14,9 @@
 
 ## Training data provenance
 
-- Source: daily UK job collection (Adzuna API, Reed API, JobSpy scraper for
-  Indeed/LinkedIn/Google, plus ATS boards) — deduplicated by content hash,
+- Source: daily UK job collection aggregating commercial job-board APIs, an
+  open web scraper covering major employment platforms, and public ATS
+  feeds — deduplicated by content hash,
   UK-location filtered, ghost/spam screened.
 - Labels: weak supervision from a ~120-skill resume-side vocabulary matched
   against job text (rule: `matched = score ≥ 5 AND ≥1 skill overlap`), with
