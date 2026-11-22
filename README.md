@@ -109,15 +109,24 @@ Full deep-dive: [`docs/scam-detection.md`](docs/scam-detection.md)
 | [`docs/01-system-diagram.md`](docs/01-system-diagram.md) · [`02-data-flow.md`](docs/02-data-flow.md) · [`03-solution-architecture.md`](docs/03-solution-architecture.md) | The full system, layer by layer |
 | [`docs/roadmap.md`](docs/roadmap.md) | What's shipped, what's next |
 
-## Status snapshot (2026-11-22)
+## 🔴🟢 Live status (auto-refreshed daily from the production API)
 
-| Metric | Value |
+<!-- LIVE-STATUS:START -->
+| Check | Value |
 |---|---|
-| Nightly pipeline | green 8 consecutive days (GitHub Actions verified) |
-| Training corpus | 128,627 gated rows (12.9× the 10k minimum), 69 daily shards |
-| Tag classifier | F1 **0.888** vs 0.575 baseline (500-row held-out eval) |
-| Trust scorer | live — RAG + strict-JSON teacher; labels accumulating for a student distillation |
-| Privacy | all storage private, enforced in code at upload time; PII scrubbed from every training field |
+| ✅ API health | ok — `uk-job-hunter-api` v0.4.0 |
+| Deployed commit | `26ec258d` |
+| ✅ Jobs database (`deduped_jobs.json`) | 20.9 MB, 4.4 h old |
+| ✅ Board-A feed (`*_latest.jsonl`) | 11.7 MB, 4.2 h old |
+| ✅ Scraper feed | 0.1 MB, 4.4 h old |
+| ⚠️ Landing-page sector catalog | temporarily unavailable |
+| *Snapshot taken* | *2026-11-22 18:49 UTC — auto-updates daily ~07:00 UTC* |
+<!-- LIVE-STATUS:END -->
+
+> Data behind this table comes from the production health endpoint
+> (`/api/v1/healthz`) of [jobs.ai-daily.uk](https://jobs.ai-daily.uk), fetched
+> by a scheduled GitHub Action in this repo — no credentials involved.
+
 
 ## Related
 
