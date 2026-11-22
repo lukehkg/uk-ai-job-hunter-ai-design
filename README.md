@@ -3,7 +3,7 @@
 > A public build log + design doc for **UK AI Job Hunter**: a self-improving
 > job-search platform whose AI learns to spot scam, fake, and ghost job
 > postings from real traffic. This repo shares **how it was designed, what
-> it cost, how long it took, and how you can copy the recipe** — no source
+> it cost, how long it took, and the lessons learned** — no source
 > code, data, or credentials included.
 
 **Live product:** [jobs.ai-daily.uk](https://jobs.ai-daily.uk)
@@ -36,7 +36,7 @@ teacher cascade, append-only shards — are documented here in full.
 | Teacher verification pilot (100 jobs) | **~$0.01** | 1 day |
 | Full low-confidence re-label (10–20% of ~470k rows) | **~$2** | 1–2 days |
 | Inference endpoint (avoided — replaced by local batch) | $0 (saved ~$0.10–0.30/h) | — |
-| **Total build: ~3 months solo, part-time, ~1,600 commits** | **≈ $30 all-in** | see the [build recipe](docs/build-it-yourself.md) |
+| **Total build: ~3 months solo, part-time, ~1,600 commits** | **≈ $30 all-in** | breakdown below |
 
 The trick that made this cheap: **never put a large-model call on the hot
 path.** A small local model labels everything; a frontier-class teacher
@@ -104,7 +104,6 @@ Full deep-dive: [`docs/scam-detection.md`](docs/scam-detection.md)
 |---|---|
 | [`docs/scam-detection.md`](docs/scam-detection.md) | ⭐ **How the scam/fake-job detection actually works** — 4 layers, RAG retrieval design, strict-JSON verdicts |
 | [`docs/teacher-student-loop.md`](docs/teacher-student-loop.md) | How the AI keeps getting better for ~$2.50 — the tiered teacher→student cascade |
-| [`docs/build-it-yourself.md`](docs/build-it-yourself.md) | 🛠 **Copy the recipe** — 10 build steps with time + cost per step, and the 7 lessons I learned the hard way |
 | [`models/model-card-c1-jobtag.md`](models/model-card-c1-jobtag.md) | The tag classifier: F1 0.888 vs 0.575 baseline, 276 labels |
 | [`models/model-card-trust-scorer.md`](models/model-card-trust-scorer.md) | The trust scorer: 5 flags, 0–100 score, evidence citations |
 | [`docs/01-system-diagram.md`](docs/01-system-diagram.md) · [`02-data-flow.md`](docs/02-data-flow.md) · [`03-solution-architecture.md`](docs/03-solution-architecture.md) | The full system, layer by layer |
@@ -119,13 +118,6 @@ Full deep-dive: [`docs/scam-detection.md`](docs/scam-detection.md)
 | Tag classifier | F1 **0.888** vs 0.575 baseline (500-row held-out eval) |
 | Trust scorer | live — RAG + strict-JSON teacher; labels accumulating for a student distillation |
 | Privacy | all storage private, enforced in code at upload time; PII scrubbed from every training field |
-
-## Can I copy this?
-
-**Yes — that's the point of this repo.** [`docs/build-it-yourself.md`](docs/build-it-yourself.md)
-is written as a recipe: the ten build steps in order, what each costs, how
-long each takes, and the mistakes to skip. The production implementation
-stays private, but every design decision in it is documented here.
 
 ## Related
 
