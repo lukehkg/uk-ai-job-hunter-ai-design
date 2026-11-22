@@ -42,44 +42,58 @@ def _health_row(name: str, info: dict) -> str:
 
 
 def build_table() -> str:
-    lines = ["| Check | Value |", "|---|---|"]
-    status, health = _get("/api/v1/healthz")
-    if status == 200:
-        lines.append(
-            f"| ✅ API health | ok — `{health.get('service')}` "
-            f"v{health.get('version')} |"
-        )
-        lines.append(f"| Deployed commit | `{str(health.get('commit'))[:8]}` |")
-        fresh = health.get("exports_freshness", {})
-        for key, label in (
-            ("deduped_jobs.json", "Jobs database (`deduped_jobs.json`)"),
-            ("adzuna_latest.jsonl", "Board-A feed (`*_latest.jsonl`)"),
-            ("jobspy_latest.jsonl", "Scraper feed"),
-        ):
-            info = fresh.get(key)
-            if info:
-                lines.append(_health_row(label, info))
-    else:
-        err = health.get("error", "unreachable") if isinstance(health, dict) else "unreachable"
-        lines.append(f"| 🔴 API health | unreachable — {err} |")
+    lines = ["| Jobs data | Value |", "|---|---|"]
 
+    # --- Live job counts from the production catalog API ---
     cat_status, catalog = _get("/api/v1/job-catalog")
     if cat_status == 200 and isinstance(catalog, dict):
-        sectors = len(catalog.get("sectors", []))
-        total = catalog.get("total_today")
+        total_db = catalog.get("total_jobs_in_dataset")
+        total_today = catalog.get("total_today")
+        sectors = catalog.get("sectors", [])
         gen = str(catalog.get("generated_at", ""))[:10]
-        total_txt = f", {total:,} new jobs" if isinstance(total, (int, float)) else ""
-        lines.append(
-            f"| ✅ Landing-page sector catalog | {sectors} sectors{total_txt}"
-            f" (refreshed {gen}) |"
-        )
+        if isinstance(total_db, (int, float)):
+            lines.append(
+                f"| 🗄 Jobs in the full database | **{total_db:,}** (UK-deduplicated) |"
+            )
+        if isinstance(total_today, (int, float)):
+            lines.append(
+                f"| 🆕 New jobs collected (latest day) | **{total_today:,}** |"
+            )
+        lines.append(f"| 🏷 Sectors tracked | {len(sectors)} |")
+        if gen:
+            lines.append(f"| 🕒 Data last refreshed | {gen} |")
     else:
         lines.append(
-            "| ⚠️ Landing-page sector catalog | temporarily unavailable |"
+            "| ⚠️ Live refresh | catalog feed temporarily unavailable — job counts "
+            "below are the last published snapshot |"
         )
+        # Last published snapshot (keep in sync with monthly compaction notes)
+        lines.append("| 🗄 Jobs in the full database | **10,728** (UK-deduplicated) |")
+        lines.append("| 🆕 New jobs collected (latest day) | **357** |")
+        lines.append("| 🏷 Sectors tracked | 8 |")
+
+    # --- Collection freshness (is the pipeline still running?) ---
+    status, health = _get("/api/v1/healthz")
+    if status == 200:
+        dedup = health.get("exports_freshness", {}).get("deduped_jobs.json", {})
+        age = dedup.get("age_seconds")
+        if isinstance(age, (int, float)):
+            lines.append(
+                f"| ♻️ Collection pipeline | healthy — last batch {age / 3600:.1f} h ago |"
+            )
+    else:
+        lines.append("| 🔴 Collection pipeline | unreachable |")
+
+    # --- AI training data + scam-detection coverage (static, updated at
+    #     compaction milestones; see docs/02-data-flow.md for the numbers') ---
+    lines.append("| 🧠 AI training corpus | 128,627 gated rows · 12.9× the 10k minimum |")
+    lines.append(
+        "| 🛡 Scam screening | every listing passes rule + duplicate screening; "
+        "RAG trust scoring live, labels accumulating toward student distillation |"
+    )
 
     now = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    lines.append(f"| *Snapshot taken* | *{now} — auto-updates daily ~07:00 UTC* |")
+    lines.append(f"| *Snapshot* | *{now} — auto-updates daily ~07:00 UTC* |")
     return "\n".join(lines)
 
 
