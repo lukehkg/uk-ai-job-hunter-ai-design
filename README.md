@@ -44,6 +44,60 @@ path.** A small local model labels everything; a frontier-class teacher
 the ~10–20% the small model was unsure about. Same quality signal, ~90%
 less spend.
 
+## Why RAG? (the diagram)
+
+A language model judging a job by its text alone has **no memory** — the
+same scam can fool it every time, and every verdict is an unauditable guess.
+Retrieval gives the teacher a memory: what the corpus already knows about
+that company, that listing, and its duplicates — turned into evidence the
+verdict must cite.
+
+```mermaid
+flowchart TB
+    JOB["📄 A new job posting arrives"]
+
+    JOB -->|"❌ Path A — judge the text alone"| N1["🧠 LLM sees one job,<br/>no history, no memory"]
+    N1 --> N2["👻 Reused scam template<br/>slips through again"]
+    N2 --> N3["⚠️ Unverifiable verdict —<br/>'looks legit to me'"]
+
+    JOB -->|"✅ Path B — retrieve first, then judge"| FTS
+    JOB --> VEC
+
+    subgraph RETRIEVE["🔍 RAG retrieval — the corpus becomes the LLM's memory"]
+        FTS["🗂 FTS5 / BM25 history<br/>same-company rows, last 180 days<br/>title-prefix ladder 4→3→2→1"]
+        VEC["🧲 Vector duplicate search<br/>embedding cosine ≥ 0.85<br/>catches reworded copies"]
+        FACTS["👻 Corpus facts surface<br/>'reposted 3× in 14 days'<br/>'same text, new URL'"]
+    end
+
+    FTS --> CTX["📚 RAG context block<br/>(max 10 chunks)"]
+    VEC --> CTX
+    FACTS --> CTX
+    CTX -->|"one strict-JSON call"| LLM["🧠 Teacher LLM<br/>5 risk flags + 0–100 score<br/>+ 1–3 evidence citations"]
+    LLM --> OUT["🎯 An auditable verdict:<br/>'is_ghost_or_stale — duplicate of<br/>same employer, cosine 0.92,<br/>3 postings in 14 days'"]
+
+    classDef job fill:#fff8e1,stroke:#f9a825,stroke-width:2px,color:#000
+    classDef bad fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#b71c1c
+    classDef retrieval fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d47a1
+    classDef brain fill:#f3e5fc,stroke:#7b1fa2,stroke-width:2px,color:#4a148c
+    classDef verdict fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#e65100
+    class JOB job
+    class N1,N2,N3 bad
+    class FTS,VEC,FACTS,CTX retrieval
+    class LLM brain
+    class OUT verdict
+```
+
+**Three reasons the retrieval layer earns its place:**
+
+1. **Memory** — a scam pattern seen once is retrievable forever; the corpus
+   remembers what no prompt can.
+2. **Evidence** — every flag must cite a retrieved fact, so a verdict can be
+   audited instead of trusted.
+3. **Cost control** — retrieval is SQLite + a local embedding ($0); the LLM
+   call only *summarizes evidence the cheap layers already found*.
+
+Full deep-dive: [`docs/scam-detection.md`](docs/scam-detection.md)
+
 ## Start here
 
 | Read | If you want to know… |
