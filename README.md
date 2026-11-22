@@ -1,63 +1,60 @@
-# UK AI Job Hunter — AI System Design (Public Showcase)
+# How I built an AI that detects scam & fake jobs — the full design
 
-> The open design companion to **UK AI Job Hunter** — a self-improving,
-> privacy-first job-search platform for the UK market. This repo shares
-> **how the AI is designed**: architecture, data flows, the teacher→student
-> learning loop, and measured results. The production code and data stay
-> private; what's documented here is the design thinking.
+> A public build log + design doc for **UK AI Job Hunter**: a self-improving
+> job-search platform whose AI learns to spot scam, fake, and ghost job
+> postings from real traffic. This repo shares **how it was designed, what
+> it cost, how long it took, and how you can copy the recipe** — no source
+> code, data, or credentials included.
 
 **Live product:** [jobs.ai-daily.uk](https://jobs.ai-daily.uk)
 
-## Why this exists
+## The story in 60 seconds
 
-Most job boards rank by keyword echo. This platform treats job search as a
-**continuous learning problem**: every daily crawl, every dedup decision,
-and every user match produces training signal — quality-gated, PII-scrubbed,
-and privacy-enforced — that feeds a family of small, cheap models instead of
-putting a large-model call on every search.
+I wanted a job board that didn't just *list* jobs but **judged** them —
+because the biggest time-killer for job seekers isn't finding listings,
+it's wading into scam, fake, and ghost postings. So I built a platform
+that collects ~2,000–3,000 UK postings daily from multiple sources
+(commercial job-board APIs, public ATS feeds, and web scraping — vendors
+deliberately unnamed), and runs every listing through a **layered
+scam-detection system** ending in a retrieval-augmented (RAG) trust scorer
+that outputs 5 risk flags and a 0–100 score with cited evidence.
 
-## The design in one paragraph
+Building the detector was the easy-sounding part. The hard lessons were
+operational: an inference endpoint that 400'd on every request, a training
+set that silently stopped growing, token budgets that die if you call a
+large model on every row. The fixes — local batch inference, a tiered
+teacher cascade, append-only shards — are documented here in full.
 
-A GitHub-Actions pipeline collects ~2,000–3,000 UK job postings daily from
-multiple sources (commercial job-board APIs, public ATS feeds, and open web
-scraping of major employment platforms — deliberately unnamed here),
-deduplicates them (exact keys + 768-dim embedding cosine ≥ 0.88), filters
-to the UK, and screens for ghost/spam listings. Every finalized job
-is auto-labelled into schema-2.0 training shards by a **tiered teacher
-cascade** — a locally-served DistilBERT tagger first (free), with a larger
-frontier-class teacher model (served through an OpenAI-compatible gateway
-API, vendor unnamed) verifying only the low-confidence
-slice (~$2 for the whole backlog). Nightly compaction dedupes, quality-gates,
-and publishes leakage-safe grouped splits as Parquet. From that corpus a
-276-label job-tag classifier (**F1 0.888 vs 0.575 frequency baseline**) and a
-RAG trust scorer (5 risk flags + 0–100 score) were already trained; a student
-model distills the teacher next, and promotes itself only by beating the
-teacher on held-out agreement.
+## What it cost & how long it took (the honest ledger)
 
-## What's in this repo
+| Item | Cost | Time |
+|---|---|---|
+| Platform subscription (model hosting + Spaces) | ~$9/month | ongoing |
+| Tag-classifier training (local CPU, 67M-param model) | **$0** | ~1 day |
+| Scam/ghost/spam rule screening | **$0** | built into the pipeline |
+| RAG trust scorer (retrieval + teacher prompts) | **$0** to run the retrieval | ~3–5 days to build |
+| Teacher verification pilot (100 jobs) | **~$0.01** | 1 day |
+| Full low-confidence re-label (10–20% of ~470k rows) | **~$2** | 1–2 days |
+| Inference endpoint (avoided — replaced by local batch) | $0 (saved ~$0.10–0.30/h) | — |
+| **Total build: ~3 months solo, part-time, ~1,600 commits** | **≈ $30 all-in** | see the [build recipe](docs/build-it-yourself.md) |
 
-| Path | What you'll find |
+The trick that made this cheap: **never put a large-model call on the hot
+path.** A small local model labels everything; a frontier-class teacher
+(served through an OpenAI-compatible gateway, vendor unnamed) verifies only
+the ~10–20% the small model was unsure about. Same quality signal, ~90%
+less spend.
+
+## Start here
+
+| Read | If you want to know… |
 |---|---|
-| [`docs/01-system-diagram.md`](docs/01-system-diagram.md) | Component diagram — every live service as it runs today |
-| [`docs/02-data-flow.md`](docs/02-data-flow.md) | The five data flows, with measured volumes |
-| [`docs/03-solution-architecture.md`](docs/03-solution-architecture.md) | Six-layer architecture + the three model tracks |
-| [`docs/teacher-student-loop.md`](docs/teacher-student-loop.md) | ⭐ The tiered teacher→student design: cascade, economics, quality gates, promotion criteria |
-| [`models/model-card-c1-jobtag.md`](models/model-card-c1-jobtag.md) | Model card — 276-label job-tag classifier (F1 0.888) |
-| [`models/model-card-trust-scorer.md`](models/model-card-trust-scorer.md) | Model card — RAG trust scorer (scam/ghost/harvest flags) |
-| [`docs/roadmap.md`](docs/roadmap.md) | What's built, what's next, and why |
-
-## Highlights worth reading
-
-- **Token thrift by design** — the whole system avoids per-search LLM calls:
-  dedup is embedding-cosine, tagging is a 67M-param local model, and the large
-  teacher only sees the ~10–20% of jobs the cheap model was unsure about.
-- **Privacy enforced in code, not policy** — uploads refuse to proceed unless
-  the storage API confirms the destination repo is private; PII (emails,
-  phones) is scrubbed from every field that enters the training corpus.
-- **Leakage-safe splits** — grouped splits keyed on normalized
-  title+company, so the same job can never appear in both train and test.
-- **Self-promotion gate** — the student only replaces the teacher if it beats
-  the teacher's agreement rate on held-out data; otherwise the teacher stays.
+| [`docs/scam-detection.md`](docs/scam-detection.md) | ⭐ **How the scam/fake-job detection actually works** — 4 layers, RAG retrieval design, strict-JSON verdicts |
+| [`docs/teacher-student-loop.md`](docs/teacher-student-loop.md) | How the AI keeps getting better for ~$2.50 — the tiered teacher→student cascade |
+| [`docs/build-it-yourself.md`](docs/build-it-yourself.md) | 🛠 **Copy the recipe** — 10 build steps with time + cost per step, and the 7 lessons I learned the hard way |
+| [`models/model-card-c1-jobtag.md`](models/model-card-c1-jobtag.md) | The tag classifier: F1 0.888 vs 0.575 baseline, 276 labels |
+| [`models/model-card-trust-scorer.md`](models/model-card-trust-scorer.md) | The trust scorer: 5 flags, 0–100 score, evidence citations |
+| [`docs/01-system-diagram.md`](docs/01-system-diagram.md) · [`02-data-flow.md`](docs/02-data-flow.md) · [`03-solution-architecture.md`](docs/03-solution-architecture.md) | The full system, layer by layer |
+| [`docs/roadmap.md`](docs/roadmap.md) | What's shipped, what's next |
 
 ## Status snapshot (2026-11-22)
 
@@ -65,16 +62,23 @@ teacher on held-out agreement.
 |---|---|
 | Nightly pipeline | green 8 consecutive days (GitHub Actions verified) |
 | Training corpus | 128,627 gated rows (12.9× the 10k minimum), 69 daily shards |
-| C1 tag classifier | F1 **0.888** vs 0.575 baseline (500-row held-out eval) |
-| Trust scorer | live, RAG + strict-JSON teacher, labels accumulating for distillation |
-| Privacy | all storage repos private, enforced at upload time |
+| Tag classifier | F1 **0.888** vs 0.575 baseline (500-row held-out eval) |
+| Trust scorer | live — RAG + strict-JSON teacher; labels accumulating for a student distillation |
+| Privacy | all storage private, enforced in code at upload time; PII scrubbed from every training field |
+
+## Can I copy this?
+
+**Yes — that's the point of this repo.** [`docs/build-it-yourself.md`](docs/build-it-yourself.md)
+is written as a recipe: the ten build steps in order, what each costs, how
+long each takes, and the mistakes to skip. The production implementation
+stays private, but every design decision in it is documented here.
 
 ## Related
 
-- Production app: [jobs.ai-daily.uk](https://jobs.ai-daily.uk)
 - Implementation repo: `uklukie/uk-ai-job-hunter-dev` (private)
 
 ## License
 
 Documentation and diagrams: [CC BY 4.0](LICENSE) — share and adapt with
 attribution. No source code, data, or credentials are included in this repo.
+
