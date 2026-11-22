@@ -129,12 +129,6 @@ Full deep-dive: [`docs/scam-detection.md`](docs/scam-detection.md)
 > Action in this repo (no credentials). Training-corpus figures update with
 > each compaction milestone.
 
-
-> Data behind this table comes from the production health endpoint
-> (`/api/v1/healthz`) of [jobs.ai-daily.uk](https://jobs.ai-daily.uk), fetched
-> by a scheduled GitHub Action in this repo — no credentials involved.
-
-
 ## Related
 
 - Implementation repo: `uklukie/uk-ai-job-hunter-dev` (private)
