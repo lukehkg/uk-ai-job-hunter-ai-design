@@ -41,11 +41,49 @@ def _health_row(name: str, info: dict) -> str:
     return f"| {mark} {name} | {size_mb:.1f} MB, {age_txt} |"
 
 
+def _arrow(delta: float) -> str:
+    return "▲" if delta > 0 else ("▼" if delta < 0 else "＝")
+
+
+def _sector_table(catalog: dict) -> str:
+    """Markdown mirror of the landing page's 'UK job market — live by
+    sector' strip (same ordering: named sectors by volume, Other last)."""
+    lines = [
+        "",
+        "**UK job market — live by sector**",
+        "",
+        "| Sector | Jobs | 3-day | 7-day | Median £ | Top employers |",
+        "|---|---:|---:|---:|---:|---|",
+    ]
+    ordered = sorted(
+        catalog.get("sectors", []),
+        key=lambda s: (s.get("sector") == "Other", -(s.get("today") or 0)),
+    )
+    for s in ordered:
+        today = s.get("today") or 0
+        d3, d3p = s.get("delta_3d") or 0, s.get("delta_3d_pct") or 0
+        d7, d7p = s.get("delta_7d") or 0, s.get("delta_7d_pct") or 0
+        med = s.get("median_salary")
+        med_txt = f"£{int(med):,}" if med else "—"
+        emp = ", ".join(s.get("top_employers") or []) or "—"
+        lines.append(
+            f"| {s.get('sector')} | {today:,} "
+            f"| {_arrow(d3)} {d3:+,} ({d3p:+.0f}%) "
+            f"| {_arrow(d7)} {d7:+,} ({d7p:+.0f}%) "
+            f"| {med_txt} | {emp} |"
+        )
+    total = catalog.get("total_today")
+    if isinstance(total, (int, float)):
+        lines.append(f"| **All sectors** | **{total:,}** | — | — | — | — |")
+    return "\n".join(lines)
+
+
 def build_table() -> str:
     lines = ["| Jobs data | Value |", "|---|---|"]
 
     # --- Live job counts from the production catalog API ---
     cat_status, catalog = _get("/api/v1/job-catalog")
+    have_catalog = cat_status == 200 and isinstance(catalog, dict) and catalog.get("sectors")
     if cat_status == 200 and isinstance(catalog, dict):
         total_db = catalog.get("total_jobs_in_dataset")
         total_today = catalog.get("total_today")
@@ -85,12 +123,18 @@ def build_table() -> str:
         lines.append("| 🔴 Collection pipeline | unreachable |")
 
     # --- AI training data + scam-detection coverage (static, updated at
-    #     compaction milestones; see docs/02-data-flow.md for the numbers') ---
+    #     compaction milestones; see docs/02-data-flow.md for the numbers) ---
+    lines.append("")
     lines.append("| 🧠 AI training corpus | 128,627 gated rows · 12.9× the 10k minimum |")
     lines.append(
         "| 🛡 Scam screening | every listing passes rule + duplicate screening; "
         "RAG trust scoring live, labels accumulating toward student distillation |"
     )
+
+    # --- The sector table itself (mirrors the landing-page strip) ---
+    if have_catalog:
+        lines.append("")
+        lines.append(_sector_table(catalog))
 
     now = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     lines.append(f"| *Snapshot* | *{now} — auto-updates daily ~07:00 UTC* |")

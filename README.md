@@ -118,10 +118,26 @@ Full deep-dive: [`docs/scam-detection.md`](docs/scam-detection.md)
 | 🆕 New jobs collected (latest day) | **357** |
 | 🏷 Sectors tracked | 8 |
 | 🕒 Data last refreshed | 2026-11-17 |
-| ♻️ Collection pipeline | healthy — last batch 0.1 h ago |
+| ♻️ Collection pipeline | healthy — last batch 0.4 h ago |
+
 | 🧠 AI training corpus | 128,627 gated rows · 12.9× the 10k minimum |
 | 🛡 Scam screening | every listing passes rule + duplicate screening; RAG trust scoring live, labels accumulating toward student distillation |
-| *Snapshot* | *2026-11-22 19:06 UTC — auto-updates daily ~07:00 UTC* |
+
+
+**UK job market — live by sector**
+
+| Sector | Jobs | 3-day | 7-day | Median £ | Top employers |
+|---|---:|---:|---:|---:|---|
+| Tech & IT | 111 | ▲ +110 (+11000%) | ▲ +106 (+2120%) | £72,500 | Roku, Data Idols, Faculty |
+| Sales & Marketing | 24 | ▲ +20 (+500%) | ▲ +22 (+1100%) | — | Complyadvantage, Deliveroo, Legal 500 |
+| Finance & Accounting | 13 | ▲ +11 (+550%) | ▲ +12 (+1200%) | — | Complyadvantage, Databricks, mewssystems |
+| Warehouse & Logistics | 9 | ▲ +9 (+900%) | ▲ +8 (+800%) | — | hyperexponential, Vanguard, i3 |
+| Retail & Customer Service | 2 | ▲ +2 (+200%) | ▲ +2 (+200%) | — | Lendable |
+| Admin & HR | 2 | ▲ +2 (+200%) | ▲ +2 (+200%) | £50,000 | iProov, Openai |
+| Industrial & Manufacturing | 0 | ▼ -1 (-100%) | ＝ +0 (+0%) | — | — |
+| Other | 196 | ▲ +176 (+880%) | ▲ +177 (+932%) | £53,764 | Legora, Openai, Lendable |
+| **All sectors** | **357** | — | — | — | — |
+| *Snapshot* | *2026-11-22 19:23 UTC — auto-updates daily ~07:00 UTC* |
 <!-- LIVE-STATUS:END -->
 
 > Job counts come from the production catalog API of
