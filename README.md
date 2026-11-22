@@ -114,14 +114,14 @@ Full deep-dive: [`docs/scam-detection.md`](docs/scam-detection.md)
 <!-- LIVE-STATUS:START -->
 | Jobs data | Value |
 |---|---|
-| ⚠️ Live refresh | catalog feed temporarily unavailable — job counts below are the last published snapshot |
 | 🗄 Jobs in the full database | **10,728** (UK-deduplicated) |
 | 🆕 New jobs collected (latest day) | **357** |
 | 🏷 Sectors tracked | 8 |
-| ♻️ Collection pipeline | healthy — last batch 4.5 h ago |
+| 🕒 Data last refreshed | 2026-11-17 |
+| ♻️ Collection pipeline | healthy — last batch 0.1 h ago |
 | 🧠 AI training corpus | 128,627 gated rows · 12.9× the 10k minimum |
 | 🛡 Scam screening | every listing passes rule + duplicate screening; RAG trust scoring live, labels accumulating toward student distillation |
-| *Snapshot* | *2026-11-22 18:56 UTC — auto-updates daily ~07:00 UTC* |
+| *Snapshot* | *2026-11-22 19:06 UTC — auto-updates daily ~07:00 UTC* |
 <!-- LIVE-STATUS:END -->
 
 > Job counts come from the production catalog API of
