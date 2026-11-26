@@ -114,11 +114,11 @@ Full deep-dive: [`docs/scam-detection.md`](docs/scam-detection.md)
 <!-- LIVE-STATUS:START -->
 | Jobs data | Value |
 |---|---|
-| 🗄 Jobs in the full database | **10,728** (UK-deduplicated) |
-| 🆕 New jobs collected (latest day) | **357** |
-| 🏷 Sectors tracked | 8 |
-| 🕒 Data last refreshed | 2026-11-17 |
-| ♻️ Collection pipeline | healthy — last batch 28.8 h ago |
+| 🗄 Jobs in the full database | **11,836** (UK-deduplicated) |
+| 🆕 New jobs collected (latest day) | **248** |
+| 🏷 Sectors tracked | 9 |
+| 🕒 Data last refreshed | 2026-11-26 |
+| ♻️ Collection pipeline | healthy — last batch 2.3 h ago |
 
 | 🧠 AI training corpus | 128,627 gated rows · 12.9× the 10k minimum |
 | 🛡 Scam screening | every listing passes rule + duplicate screening; RAG trust scoring live, labels accumulating toward student distillation |
@@ -128,16 +128,17 @@ Full deep-dive: [`docs/scam-detection.md`](docs/scam-detection.md)
 
 | Sector | Jobs | 3-day | 7-day | Median £ | Top employers |
 |---|---:|---:|---:|---:|---|
-| Tech & IT | 111 | ▲ +110 (+11000%) | ▲ +106 (+2120%) | £72,500 | Roku, Data Idols, Faculty |
-| Sales & Marketing | 24 | ▲ +20 (+500%) | ▲ +22 (+1100%) | — | Complyadvantage, Deliveroo, Legal 500 |
-| Finance & Accounting | 13 | ▲ +11 (+550%) | ▲ +12 (+1200%) | — | Complyadvantage, Databricks, mewssystems |
-| Warehouse & Logistics | 9 | ▲ +9 (+900%) | ▲ +8 (+800%) | — | hyperexponential, Vanguard, i3 |
-| Retail & Customer Service | 2 | ▲ +2 (+200%) | ▲ +2 (+200%) | — | Lendable |
-| Admin & HR | 2 | ▲ +2 (+200%) | ▲ +2 (+200%) | £50,000 | iProov, Openai |
-| Industrial & Manufacturing | 0 | ▼ -1 (-100%) | ＝ +0 (+0%) | — | — |
-| Other | 196 | ▲ +176 (+880%) | ▲ +177 (+932%) | £53,764 | Legora, Openai, Lendable |
-| **All sectors** | **357** | — | — | — | — |
-| *Snapshot* | *2026-11-25 17:54 UTC — auto-updates daily ~07:00 UTC* |
+| Tech & IT | 30 | ▲ +22 (+275%) | ▼ -76 (-72%) | £55,300 | Catapult Sports, Avanade, Innovative Technology Ltd |
+| Finance & Accounting | 15 | ▲ +8 (+114%) | ▼ -43 (-74%) | — | Jobgether, Marshmallow, Constructor |
+| Sales & Marketing | 13 | ▲ +7 (+117%) | ▼ -11 (-46%) | — | Checkout.com, New Look, University of Edinburgh |
+| Healthcare | 2 | ▲ +2 (+200%) | ▼ -4 (-67%) | £252,356 | Microsoft, Montu Uk |
+| Warehouse & Logistics | 1 | ▲ +1 (+100%) | ▼ -8 (-89%) | — | AstraZeneca |
+| Admin & HR | 0 | ＝ +0 (+0%) | ▼ -4 (-100%) | — | — |
+| Industrial & Manufacturing | 0 | ＝ +0 (+0%) | ▼ -5 (-100%) | — | — |
+| Retail & Customer Service | 0 | ＝ +0 (+0%) | ▼ -3 (-100%) | — | — |
+| Other | 187 | ▲ +139 (+290%) | ▼ -7 (-4%) | £46,024 | Elsevier, BAE Systems, Checkout.com |
+| **All sectors** | **248** | — | — | — | — |
+| *Snapshot* | *2026-11-26 17:39 UTC — auto-updates daily ~07:00 UTC* |
 <!-- LIVE-STATUS:END -->
 
 > Job counts come from the production catalog API of
