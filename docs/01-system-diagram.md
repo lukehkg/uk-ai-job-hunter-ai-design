@@ -1,18 +1,20 @@
 # 1 — System Diagram (components as they exist today)
 
 Rendered by GitHub natively. Status markers: **LIVE** components run in production; dashed boxes are offline/unused right now.
-# 1 — High-Level System Story (what we do, how it runs, how we keep data safe)
+# System Design Reference (Abstract Concept)
 
-This is the plain-English version of the UK AI Job Hunter. It answers: what we want to do, what the system does, how the AI (RAG) works, how the AI learns, and how privacy is protected. No private service details needed — just the big picture.
+**For the high‑level plain‑English story, see [`docs/concept-abstract.md`](docs/concept-abstract.md)**
+
+This document remains for reference and maintains a slightly higher level of detail where useful for developers or technical stakeholders.
 
 ```mermaid
 flowchart LR
     U[Job seeker] --> W[Web app UI<br/>landing · search · results with trust badges]
     W --> B[Backend service<br/>collect · search · trust score · learn]
-    B --> P[Private storage<br/>Hugging Face repos (jobs · training · models)]
-    B --> A[AI brain<br/>cheap model first → teacher LLM → student distills]
+    B --> P[Private storage<br/>Vector & full-text indexes]
+    B --> A[AI trust system<br/>cheap model → verifier AI → distills to student]
     A --> W
-    B --> S[Job sources<br/>APIs · web scraper · ATS feeds]
+    B --> S[Job sources<br/>commercial APIs · web scraper · public ATS feeds]
 ```
 
 ## Flows — how the work actually moves
