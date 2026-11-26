@@ -1,118 +1,18 @@
 # 1 — System Diagram (components as they exist today)
 
 Rendered by GitHub natively. Status markers: **LIVE** components run in production; dashed boxes are offline/unused right now.
+# 1 — High-Level System Story (what we do, how it runs, how we keep data safe)
+
+This is the plain-English version of the UK AI Job Hunter. It answers: what we want to do, what the system does, how the AI (RAG) works, how the AI learns, and how privacy is protected. No private service details needed — just the big picture.
 
 ```mermaid
-flowchart TB
-    subgraph USERS["Users"]
-        U1["Job seeker — browser / mobile"]
-        U2["Operator (owner) — GitHub Actions / passcode"]
-    end
-
-    subgraph SRC["External job sources"]
-        S1["Commercial job-board API A (primary volume)"]
-        S2["Commercial job-board API B"]
-        S3["Open web scraper — major boards (vendor unnamed)"]
-        S4["Public ATS feeds — Greenhouse / Lever / Ashby / Workable / SmartRecruiters"]
-        S5["Frontier LLM APIs — resume profile / cover letter"]
-    end
-
-    subgraph INGEST["Daily collection — sync-jobs-oct26.yml (GitHub Actions)"]
-        CNTRL["POST /api/v1/pipeline/finalize (controller.py)"]
-        DEDUP["dedup — exact key/URL + AI semantic dedup (cosine ≥ 0.88)"]
-        UKFLT["is_uk_location filter (~16% dropped)"]
-        RISK["Risk screening — ghost / spam / resume-harvest flags + PII scrub"]
-    end
-
-    subgraph IDX["Corpus-first search index — index_store.py"]
-        FTS["SQLite FTS5 full-text search (title / company / location / description / skills)"]
-        VEC["Vector cosine search — all-mpnet embeddings (BLOB column)"]
-        SHARD["Date-partitioned shards corpus_index_YYYY_MM_DD.sqlite3"]
-        ENSURE["ensure_fresh() — self-heal: rebuild catalog when corpus newer than served copy"]
-    end
-
-    subgraph SPACE["HuggingFace PRO Space — nginx + uvicorn :7860"]
-        FE["Frontend React SPA (Vite) — Landing page · sector catalog strip · CV match · results table · source tabs"]
-        BE["Backend FastAPI /api/v1 — finalize · cvsearch/stream · trust-score · job-catalog · saved-links · auth / profile / cover-letter · health / system"]
-        CACHE["24-h response cache (in-memory + SQLite)"]
-    end
-
-    subgraph RAG["RAG trust-score pipeline — trust_score.py"]
-        EMB["Job text → embed (all-mpnet)"]
-        RET["FTS5 corpus retrieve — top-10 context chunks + vector dupes"]
-        CTX["RAG context block (max 10 chunks) + facts"]
-        TCHR["Tier-2 teacher LLM — strict JSON verdict: 5 flags + 0–100 score + citations via OpenAI-compatible gateway (~$2, quota-guarded)"]
-        FALL["Fallback keyword scorer if teacher unavailable"]
-        OUT["Trust badge on job card → trust_labels.jsonl"]
-    end
-
-    subgraph TRAIN["AI plane — teacher → student learning loop (~$2.50 total)"]
-        T1["Tier 1 — local DistilBERT batch inference — $0; only LOW-CONFIDENCE slice (~10–20%) continues"]
-        T2["Tier 2 — teacher LLM verifies uncertain slice (~$2 / full pass)"]
-        T3["Tier 3 — student DistilBERT 67M — retrained on Tier-2-verified labels"]
-        PROMO["Promotes only if beats teacher agreement on held-out data"]
-    end
-
-    subgraph HF["HuggingFace PRO — all repos PRIVATE"]
-        D1[("pro-data jobs repo — *_latest.jsonl · deduped_jobs.json · job_type_catalog.json")]
-        D2[("dev-autotrain training repo — data/shards/<date>/<hash>.jsonl · train/validation/test.parquet · pairs")]
-        D3[("autotrain-models model repo — c1-jobtag-distilbert-v1")]
-    end
-
-    subgraph OPS["GitHub Actions"]
-        A1["ci.yml — checks + Space deploy"]
-        A2["sync-jobs-oct26.yml — daily 06:00 UTC collect + finalize"]
-        A3["compact-dataset.yml — nightly 08:00 UTC compact"]
-        A4["train-student — manual dispatch only"]
-    end
-
-    U1 -->|browse| FE
-    U2 -->|trigger| OPS
-    S1 & S2 & S3 & S4 -->|daily collect| A2
-    CNTRL --> DEDUP --> UKFLT --> RISK
-    RISK -->|deduped_jobs.json + *_latest.jsonl| CNTRL
-    CNTRL -->|build index| SHARD
-    CNTRL -->|upload_file| D1 & D2
-    ENSURE -.->|self-heal read path| SHARD
-    SHARD --> FTS & VEC
-    FTS & VEC -->|warm sub-second answers| BE
-    BE -->|fetch catalog JSON| FE
-    BE -->|SSE stream| FE
-    BE -->|/trust-score RAG| RAG
-    EMB --> RET --> CTX
-    CTX --> TCHR & FALL
-    TCHR --> OUT
-    OUT -->|append labels| TRAIN
-    T1 --> T2 --> T3 --> PROMO
-    T3 -.->|serves at $0| BE
-    PROMO -.->|Step C: distill teacher → local model| D3
-    A1 -->|deploy code| SPACE
-    A3 -->|/dataset/compact| CNTRL
-    D2 -.->|dataset mirror commit| OPS
-
-    classDef user fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
-    classDef source fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
-    classDef ingest fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
-    classDef search fill:#f3e5f4,stroke:#7b1fa2,stroke-width:2px
-    classDef serve fill:#e0f7fa,stroke:#00838f,stroke-width:2px
-    classDef rag fill:#ffebee,stroke:#c62828,stroke-width:2px
-    classDef ai fill:#f3e5f4,stroke:#7b1fa2,stroke-width:2px
-    classDef store fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
-    classDef ops fill:#fafafa,stroke:#9e9e9e,stroke-width:2px
-
-    class U1,U2 user
-    class S1,S2,S3,S4,S5 source
-    class CNTRL,DEDUP,UKFLT,RISK ingest
-    class FTS,VEC,SHARD,ENSURE search
-    class FE,BE,CACHE serve
-    class EMB,RET,CTX,TCHR,FALL,OUT rag
-    class T1,T2,T3,PROMO ai
-    class D1,D2,D3 store
-    class A1,A2,A3,A4 ops
-
-    linkStyle default stroke-width:1.5px,fill:none,stroke:#666
-    linkStyle 0 stroke:#2e7d32,stroke-width:2px
-    linkStyle 1 stroke:#ef6c00,stroke-width:2px
+flowchart LR
+    U[Job seeker] --> W[Web app UI<br/>landing · search · results with trust badges]
+    W --> B[Backend service<br/>collect · search · trust score · learn]
+    B --> P[Private storage<br/>Hugging Face repos (jobs · training · models)]
+    B --> A[AI brain<br/>cheap model first → teacher LLM → student distills]
+    A --> W
+    B --> S[Job sources<br/>APIs · web scraper · ATS feeds]
 ```
 
 ## Flows — how the work actually moves
