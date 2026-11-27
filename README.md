@@ -118,7 +118,7 @@ Full deep-dive: [`docs/scam-detection.md`](docs/scam-detection.md)
 | 🆕 New jobs collected (latest day) | **248** |
 | 🏷 Sectors tracked | 9 |
 | 🕒 Data last refreshed | 2026-11-26 |
-| ♻️ Collection pipeline | healthy — last batch 2.3 h ago |
+| ♻️ Collection pipeline | healthy — last batch 0.9 h ago |
 
 | 🧠 AI training corpus | 128,627 gated rows · 12.9× the 10k minimum |
 | 🛡 Scam screening | every listing passes rule + duplicate screening; RAG trust scoring live, labels accumulating toward student distillation |
@@ -138,7 +138,7 @@ Full deep-dive: [`docs/scam-detection.md`](docs/scam-detection.md)
 | Retail & Customer Service | 0 | ＝ +0 (+0%) | ▼ -3 (-100%) | — | — |
 | Other | 187 | ▲ +139 (+290%) | ▼ -7 (-4%) | £46,024 | Elsevier, BAE Systems, Checkout.com |
 | **All sectors** | **248** | — | — | — | — |
-| *Snapshot* | *2026-11-26 17:39 UTC — auto-updates daily ~07:00 UTC* |
+| *Snapshot* | *2026-11-27 17:23 UTC — auto-updates daily ~07:00 UTC* |
 <!-- LIVE-STATUS:END -->
 
 > Job counts come from the production catalog API of
